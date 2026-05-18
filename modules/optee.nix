@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   inherit (lib)
@@ -14,15 +19,26 @@ let
 in
 {
   imports = [
-    (mkRenamedOptionModule [ "hardware" "nvidia-jetpack" "firmware" "optee" "supplicantExtraArgs" ] [ "hardware" "nvidia-jetpack" "firmware" "optee" "supplicant" "extraArgs" ])
-    (mkRenamedOptionModule [ "hardware" "nvidia-jetpack" "firmware" "optee" "trustedApplications" ] [ "hardware" "nvidia-jetpack" "firmware" "optee" "supplicant" "trustedApplications" ])
-    (mkRenamedOptionModule [ "hardware" "nvidia-jetpack" "firmware" "optee" "supplicantPlugins" ] [ "hardware" "nvidia-jetpack" "firmware" "optee" "supplicant" "plugins" ])
+    (mkRenamedOptionModule
+      [ "hardware" "nvidia-jetpack" "firmware" "optee" "supplicantExtraArgs" ]
+      [ "hardware" "nvidia-jetpack" "firmware" "optee" "supplicant" "extraArgs" ]
+    )
+    (mkRenamedOptionModule
+      [ "hardware" "nvidia-jetpack" "firmware" "optee" "trustedApplications" ]
+      [ "hardware" "nvidia-jetpack" "firmware" "optee" "supplicant" "trustedApplications" ]
+    )
+    (mkRenamedOptionModule
+      [ "hardware" "nvidia-jetpack" "firmware" "optee" "supplicantPlugins" ]
+      [ "hardware" "nvidia-jetpack" "firmware" "optee" "supplicant" "plugins" ]
+    )
   ];
 
   options = {
     hardware.nvidia-jetpack.firmware.optee = {
       supplicant = {
-        enable = mkEnableOption "tee-supplicant daemon" // { default = true; };
+        enable = mkEnableOption "tee-supplicant daemon" // {
+          default = true;
+        };
 
         extraArgs = mkOption {
           type = types.listOf types.str;
@@ -50,6 +66,21 @@ in
             package on startup.
           '';
         };
+        patches = mkOption {
+          type = types.listOf types.path;
+          default = [ ];
+          description = ''
+            Patches to apply to optee client (tee-supplicant).
+          '';
+        };
+
+        extraMakeFlags = mkOption {
+          type = types.listOf types.str;
+          default = [ ];
+          description = ''
+            Extra make flags for optee client (tee-supplicant).
+          '';
+        };
       };
 
       pkcs11Support = mkOption {
@@ -71,11 +102,17 @@ in
       patches = mkOption {
         type = types.listOf types.path;
         default = [ ];
+        description = ''
+          Patches to apply to optee OS.
+        '';
       };
 
       extraMakeFlags = mkOption {
         type = types.listOf types.str;
         default = [ ];
+        description = ''
+          Extra make flags for optee OS.
+        '';
       };
 
       taPublicKeyFile = mkOption {
