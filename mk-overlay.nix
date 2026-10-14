@@ -95,7 +95,8 @@ makeScope final.newScope (self: {
     mapAttrsToList
       (relpath: repo: ''
         mkdir -p $out/${relpath}
-        cp --no-preserve=all -r ${repo}/. $out/${relpath}
+        cp -r ${repo}/. $out/${relpath}
+        chmod -R u+w $out/${relpath}
       '')
       self.gitRepos
   );

@@ -18,7 +18,8 @@ let
             project:
             ''
               mkdir -p "$out/${project}"
-              cp --no-preserve=all -vr "${lib.attrsets.attrByPath [project] 0 gitRepos}"/. "$out/${project}"
+              cp -vr "${lib.attrsets.attrByPath [project] 0 gitRepos}"/. "$out/${project}"
+              chmod -R u+w "$out/${project}"
             ''
           )));
 in

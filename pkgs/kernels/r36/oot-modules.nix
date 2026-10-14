@@ -72,7 +72,8 @@ let
       + (lib.strings.concatStringsSep "\n" (lib.mapAttrsToList
         (name: project: ''
           mkdir -p "$out/${name}"
-          cp --no-preserve=all -vr "${project}"/. "$out/${name}"
+          cp -vr "${project}"/. "$out/${name}"
+          chmod -R u+w "$out/${name}"
         '')
         l4t-oot-projects))
       # See bspSrc/source/source_sync.sh symlink at end of file
