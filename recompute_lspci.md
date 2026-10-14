@@ -1,0 +1,8 @@
+0004:00:00.0 PCI bridge: NVIDIA Corporation Device 229c (rev a1)
+0004:01:00.0 Non-Volatile memory controller: Device 1dbe:5216 (rev 01)
+0007:00:00.0 PCI bridge: NVIDIA Corporation Device 229a (rev a1)
+0007:01:00.0 Ethernet controller: Microchip Technology / SMSC Device 7430 (rev 11)
+0008:00:00.0 PCI bridge: NVIDIA Corporation Device 229c (rev a1)
+0008:01:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8111/8168/8411 PCI Express Gigabit Ethernet Controller (rev 15)
+0009:00:00.0 PCI bridge: NVIDIA Corporation Device 229c (rev a1)
+0009:01:00.0 USB controller: Renesas Technology Corp. uPD720201 USB 3.0 Host Controller (rev 03)
