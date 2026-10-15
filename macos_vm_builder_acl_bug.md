@@ -1,4 +1,6 @@
-# `cp --no-preserve=mode` fails on Determinate Nix macOS Linux builder
+# Determinate Nix macOS Linux builder: virtiofs /nix/store issues
+
+# Issue 1: `cp --no-preserve=mode` fails on Determinate Nix macOS Linux builder
 
 ## Summary
 
@@ -113,3 +115,80 @@ chmod -R u+w "$out/dir"
 
 This is what jetpack-nixos now does in `pkgs/kernels/r3{6,9}/{oot-modules,devicetree}.nix` and
 `mk-overlay.nix`.
+
+---
+
+# Issue 2: `$out` is case-insensitive on the Determinate Nix macOS Linux builder
+
+## Summary
+
+Inside the same Linux builder VM, `/nix/store` is case-insensitive, because it is the host's
+`Nix Store` APFS volume shared over virtiofs:
+
+```
+$ diskutil info /nix | grep -E "Volume Name|Personality"
+   Volume Name:               Nix Store
+   File System Personality:   APFS          # not "Case-sensitive APFS"
+```
+
+A Linux build that writes two paths differing only in case into `$out` either fails or silently
+loses one file. The host's `use-case-hack = true` (Nix's renaming of colliding names on macOS)
+doesn't apply, because the guest writes directly to the shared volume.
+
+Real-world trigger: NVIDIA's `nvidia-l4t-jetson-multimedia-api_39.2.1` .deb ships both
+
+```
+usr/src/jetson_multimedia_api/include/NvBufSurface.h
+usr/src/jetson_multimedia_api/include/nvbufsurface.h
+```
+
+and copying the unpacked tree to `$out` (`cp -pr . $out`) fails with:
+
+```
+cp: cannot create regular file '/nix/store/...-source/src/jetson_multimedia_api/include/nvbufsurface.h': File exists
+```
+
+## Minimal reproduction
+
+`case.nix`:
+
+```nix
+# Usage: nix build --impure -L -f case.nix <attr>   (on aarch64-darwin with the Determinate Linux builder)
+let
+  pkgs = (builtins.getFlake "github:NixOS/nixpkgs/nixos-unstable").legacyPackages.aarch64-linux;
+  mk = name: target: pkgs.runCommand "vm-case-repro-${name}" { } ''
+    mkdir -p $out ${target}
+    echo upper > ${target}/Foo.h
+    echo lower > ${target}/foo.h
+    ls ${target}; [ "$(cat ${target}/Foo.h)" = upper ] || { echo "Foo.h was clobbered"; exit 1; }
+  '';
+in {
+  # FAILS: two names differing only in case under $out (virtiofs-backed /nix/store)
+  case-collision-store = mk "store" "$out";
+  # OK: same thing on the VM-local tmpfs
+  case-collision-tmpfs = mk "tmpfs" "/build/t";
+}
+```
+
+Observed:
+
+```
+case-collision-store:  ls shows only "Foo.h"; "Foo.h was clobbered"; rc=1
+case-collision-tmpfs:  rc=0
+```
+
+A plain shell redirect (`open(O_CREAT|O_TRUNC)`) silently overwrites the existing file, which
+loses data. `cp` uses `O_EXCL`, so it fails with `EEXIST` instead.
+
+## Expected behaviour
+
+Linux builds should see a case-sensitive `/nix/store`, as on a native Linux builder. Options for
+Determinate: back the builder's store with a case-sensitive volume, or warn when the host store
+is case-insensitive.
+
+## Workaround
+
+- Recreate the host store on a case-sensitive APFS volume. An existing APFS volume's case
+  sensitivity can't be changed in place, so this means uninstalling and reinstalling with
+  `/nix/nix-installer install macos --case-sensitive`.
+- Or build affected derivations on a native Linux remote builder, or substitute them from a cache.
