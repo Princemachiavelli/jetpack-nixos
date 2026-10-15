@@ -89,12 +89,12 @@
     "fetchLFS": false,
     "fetchSubmodules": false,
     "fetchTags": false,
-    "hash": "sha256-hijrJIoLvIka+oMJBQFluSIDGjSgy2VGf2gxX7k8Yx8=",
+    "hash": "sha256-jt6jzTH82I+im444BCyBr9669gcPZcNbdDLSq7MV70o=",
     "leaveDotGit": false,
-    "path": "/nix/store/0k7f99mzlq352a9kr0gfwxcr8fviajsx-linux-noble",
+    "path": "/nix/store/29qfh8fz0x476y6my1p6s4jy01b996cn-linux-noble",
     "rev": "8f45c372c2d972ceb1c27cde99bff2cd6cb9b7d6",
     "rootDir": "",
-    "sha256": "07v37jwmycb8gx36bjx06hd068mrcl0ha2c3z8d8kg0bi8jfna46",
+    "sha256": "0jpg2nrsplijfidw6r8g0zvbmpmgh4n08f4fkfi8zn7w676s7plf",
     "url": "https://gitlab.com/nvidia/nv-tegra/3rdparty/canonical/linux-noble.git"
   },
   "nvdisplay": {
@@ -147,10 +147,10 @@
     "fetchTags": false,
     "hash": "sha256-brF+qO0tRXQj9coPFZB0ax//yKE8l1o3MObpwistvok=",
     "leaveDotGit": false,
-    "path": "/nix/store/w64zg7sr4n4d2g52gh2wzad2qqx3gmqa-linux-nv-oot",
+    "path": "/nix/store/9h5bxv27rv0gk300826h2sadgyhm6ylf-linux-nv-oot",
     "rev": "12f78f1083ea4ad66d30cc261cf636cce4b41739",
     "rootDir": "",
-    "sha256": "1g5dm683ynm08xvy1kxgbcrlhbx0k7yilmis1w953aq41aiw0hxv",
+    "sha256": "12dy5lmw5sg660vmm5rwl74gy7vbfj81a3yaylip8i9dxnl7xcbf",
     "url": "https://gitlab.com/nvidia/nv-tegra/linux-nv-oot.git"
   },
   "tegra/ada-src/adaruntime": {
@@ -539,10 +539,10 @@
     "fetchTags": false,
     "hash": "sha256-5sZtTcyt2CWIVxxomFk36Xv/XsYwvCvj4XF4vGJBPG8=",
     "leaveDotGit": false,
-    "path": "/nix/store/bzy379aj68han3z3jyn5bc8lm1z402vy-nv-optee",
+    "path": "/nix/store/bzb80k8j3i3rc0130h59nwivi479qycr-nv-optee",
     "rev": "3d3baa7c3f7bc9dc5dbe41f402b075450f4ad1d9",
     "rootDir": "",
-    "sha256": "0z4x4ja679vpwms0a5jirwnhgw2qm596avfhb3z7fhwm7cas39fn",
+    "sha256": "0vrw85ibqy3iw7ijpg1hqrggyyz96xcrhs0way42bn5dri6nvip6",
     "url": "https://gitlab.com/nvidia/nv-tegra/tegra/optee-src/nv-optee.git"
   },
   "tegra/spe-src/spe-freertos-bsp": {
