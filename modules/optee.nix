@@ -14,6 +14,21 @@ let
 
   inherit (pkgs.nvidia-jetpack) l4tAtLeast;
 
+  # tpm_ftpm_tee probes synchronously and a failed probe (e.g. TEE_ERROR_TARGET_DEAD)
+  # does not make modprobe fail, nor unload the module. Fail the unit unless the
+  # TPM actually shows up, so Restart= can retry; the retry needs to unload the
+  # stale module first, since modprobe of a loaded module is a no-op.
+  ftpmLoad = modprobe: ''
+    ${modprobe} -r tpm_ftpm_tee || true
+    ${modprobe} tpm_ftpm_tee
+    for _ in {1..50}; do
+      [ -e /sys/class/tpm/tpm0 ] && exit 0
+      read -rt 0.1 <> <(:) || :
+    done
+    echo "tpm_ftpm_tee loaded but no TPM device appeared (probe failed?)" >&2
+    exit 1
+  '';
+
   # Shared derivations used by both initrd and normal-root services.
   teeApplications = pkgs.symlinkJoin {
     name = "tee-applications";
@@ -362,7 +377,7 @@ in
           ${lib.optionalString cfg.ftpm.unsecureInjectEPS.enable epsInjectScript}
 
           echo "Loading tpm_ftpm_tee driver..."
-          ${pkgs.kmod}/bin/modprobe tpm_ftpm_tee
+          ${ftpmLoad "${pkgs.kmod}/bin/modprobe"}
         '';
 
         # Used when earlyBoot is enabled: cycle the module to close the
@@ -374,7 +389,7 @@ in
           echo "Reloading tpm_ftpm_tee (fresh session after switch-root)..."
           ${pkgs.kmod}/bin/modprobe -r tpm_ftpm_tee
           sleep 1
-          ${pkgs.kmod}/bin/modprobe tpm_ftpm_tee
+          ${ftpmLoad "${pkgs.kmod}/bin/modprobe"}
         '';
 
         stopScript = pkgs.writeShellScript "ftpm-driver-unload" ''
@@ -425,6 +440,11 @@ in
               then reloadScript
               else startScript;
             ExecStop = stopScript;
+            # See the initrd unit: the first probe can take minutes in the secure world.
+            TimeoutStartSec = "10min";
+            # Retry if the driver load fails.
+            Restart = "on-failure";
+            RestartSec = "2s";
             StateDirectory = "optee/ftpm";
           };
         };
@@ -508,7 +528,7 @@ in
           ${lib.optionalString cfg.ftpm.unsecureInjectEPS.enable initrdEpsInjectScript}
 
           echo "Loading tpm_ftpm_tee driver..."
-          ${pkgs.kmod}/bin/modprobe tpm_ftpm_tee
+          ${ftpmLoad "${pkgs.kmod}/bin/modprobe"}
         '';
       in
       {
@@ -572,6 +592,13 @@ in
               Type = "oneshot";
               RemainAfterExit = true;
               ExecStart = initrdStartScript;
+              # The first probe can take over a minute in the secure world (seen:
+              # 26s CPU in a 60s window, then killed). Killing modprobe mid-call
+              # seems to leave the TA dead (TEE_ERROR_TARGET_DEAD), so don't time out early.
+              TimeoutStartSec = "10min";
+              # Retry on failure
+              Restart = "on-failure";
+              RestartSec = "2s";
               # Unload module during switch-root cleanup so /dev/tpm0
               # disappears. Prevents stale session from being probed by
               # udev/systemd-tpm2-setup before the normal ftpm-driver
